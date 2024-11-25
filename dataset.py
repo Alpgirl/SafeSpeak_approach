@@ -56,7 +56,6 @@ class IndexSampler(torch.utils.data.sampler.Sampler[int]):
     """
 
     def __init__(self, data_source: ASVspoof2019, examples_per_class: int) -> None:
-        ### YOUR CODE HERE
         self.dataset = data_source
         self.examples_per_class = examples_per_class
 
@@ -65,6 +64,7 @@ class IndexSampler(torch.utils.data.sampler.Sampler[int]):
         Функция, которая будет генерировать список индексов элементов в батче.
         """
         batch = []
+        # Какие классы?
         classes = list(self.dataset.classes_to_samples.keys())
         for cls in classes:
             elements = random.choices(self.dataset.classes_to_samples[cls], k=self.examples_per_class)
@@ -76,7 +76,7 @@ class IndexSampler(torch.utils.data.sampler.Sampler[int]):
         """
         Возвращает общее количество индексов.
         """
-        ### YOUR CODE HERE
+        # Что возвращать?
         n_classes = len(list(self.dataset.classes_to_samples.keys()))
         return len(self.dataset) // (n_classes * self.examples_per_class)
 
@@ -143,6 +143,7 @@ def get_dataloaders(datasets, config):
             num_workers=config["num_workers"]
         )
         dataloaders["train"] = train_loader
+
     if datasets.get("dev"):
         dev_loader = DataLoader(
             datasets["dev"],
@@ -153,15 +154,13 @@ def get_dataloaders(datasets, config):
         dataloaders["dev"] = dev_loader
 
     if datasets.get("train_knn"):
-        sampler = IndexSampler(datasets["eval"], examples_per_class=1000)
-        eval_loader = DataLoader(
-            datasets["eval"],
+        sampler = IndexSampler(datasets["train_knn"], examples_per_class=1000)
+        knn_train_loader = DataLoader(
+            datasets["train_knn"],
             batch_sampler=[sampler],
-            #batch_size=config["batch_size"],
-            #shuffle=False,
             num_workers=config["num_workers"]
         )
-        dataloaders["train_knn"] = eval_loader
+        dataloaders["train_knn"] = knn_train_loader
 
     if datasets.get("eval"):
         eval_loader = DataLoader(

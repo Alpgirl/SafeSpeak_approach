@@ -30,5 +30,6 @@
   "eval_label_path": "/asvspoof/LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.eval.trl.txt",
   "eval_path_flac": "/asvspoof/LA/ASVspoof2019_LA_eval",
   "checkpoint": "/app/SafeSpeak-2024/weights/LA_model.pth",
+  "knn_weights_path": "/app/SafeSpeak-2024/weights/knn_model.bin",
   "num_workers": 6
 }
