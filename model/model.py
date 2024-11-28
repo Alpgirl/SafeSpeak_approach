@@ -594,15 +594,16 @@ class Model(nn.Module):
         last_hidden = torch.cat(
             [T_max, T_avg, S_max, S_avg, master.squeeze(1)], dim=1)
         
-        last_hidden = self.drop(last_hidden)
-        output = self.out_layer(last_hidden)
+        last_hidden_1 = self.drop(last_hidden)
+        output = self.out_layer(last_hidden_1)
         
-        return output
+        return last_hidden, output
 
 
 class ModelKNN(Model):
-    def __init__(self, n_neighbors=20):
-        super().__init__()
+    def __init__(self, device, n_neighbors=10):
+        super().__init__(device)
+        self.device = device
         self.eval()
         self.knn = KNeighborsClassifier(n_neighbors=n_neighbors)
 
@@ -613,7 +614,6 @@ class ModelKNN(Model):
 
         :param knn_path: Путь, откуда надо прочитать веса kNN
         """
-        ### YOUR CODE HERE
         with open(knn_path, 'rb') as file:
             self.knn = pickle.load(file)
 
@@ -624,7 +624,6 @@ class ModelKNN(Model):
 
         :param knn_path: Путь, куда надо сохранить веса kNN
         """
-        ### YOUR CODE HERE
         with open(knn_path, 'wb') as file:
             pickle.dump(self.knn, file)
 
@@ -635,33 +634,35 @@ class ModelKNN(Model):
 
         :param indexloader: Загрузчик данных для обучения kNN
         """
-        ### YOUR CODE HERE
         features, labels = [], []
 
-        audio, _, tgs = next(iter(indexloader))
+        # self = self.to("cpu")
         with torch.no_grad():
-            feats, out = self(audio)
-            feats = torch.nn.functional.normalize(feats, p=2, dim=1)
-            features.append(feats.numpy())
-            labels.append(tgs.numpy())
+            i = 0
+            for audios, targets, _ in indexloader:
+                audios = audios.to(self.device)
+                feats, out = self(audios)
+                feats = torch.nn.functional.normalize(feats, p=2, dim=1)
+                i += 1
+                print(f"Processed {i} batches")
+                features.append(feats.detach().cpu().numpy())
+                labels.append(targets.numpy())
         
         features = np.vstack(features)
         labels = np.concatenate(labels)
+        print(f"features shape: {features.shape}\nlabels shape: {labels.shape}")
         self.knn.fit(features, labels)
 
 
     def predict(self, audio: torch.Tensor) -> np.ndarray:
         """
         Функция для предсказания классов-ответов. Возвращает np-массив с индексами классов.
-
-        :param imgs: батч с картинками
         """
-        ### YOUR CODE HERE - предсказание нейросетевой модели
+        self = self.to(self.device)
         features, model_pred = self(audio)
-        features = features.detach()
+        features = features.detach().cpu().numpy()
         features = features / np.linalg.norm(features, axis=1)[:, None]
-        ### YOUR CODE HERE - предсказание kNN на features
-        knn_pred = self.knn.predict(features)
+        knn_pred = self.knn.predict_proba(features)
         return knn_pred
     
 

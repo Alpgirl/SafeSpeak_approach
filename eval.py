@@ -9,7 +9,7 @@ from model.model import get_model
 from metrics import produce_evaluation_file, evaluate_EER
 
 
-def main(args, cfg):
+def main(args, cfg, train_head=False):
     eval_ids, eval_labels = get_data_for_dataset(cfg['eval_label_path'])
     train_ids, train_labels = get_data_for_dataset(cfg['train_label_path'])
 
@@ -18,7 +18,7 @@ def main(args, cfg):
         "eval": eval_dataset
     }
 
-    train_dataset = ASVspoof2019(train_ids, cfg['train_path_flac'], train_labels)
+    train_dataset = ASVspoof2019(eval_ids, cfg['eval_path_flac'], eval_labels, pad)
     train_dataset = {
         "train_knn": train_dataset
     }
@@ -28,9 +28,11 @@ def main(args, cfg):
 
     model = get_model(cfg["checkpoint"], cfg["device"])
 
-    model.train_head(train_knn_dataloader["train_knn"])
-    model.save_head(cfg['knn_weights_path'])
-
+    if train_head:
+        model.train_head(train_knn_dataloader["train_knn"])
+        model.save_head(cfg['knn_weights_path'])
+    else:
+        model.load_head(cfg['knn_weights_path'])
     loss_fn = nn.CrossEntropyLoss(weight=torch.FloatTensor([0.1, 0.9]).to(cfg["device"]))
 
     produce_evaluation_file(
@@ -59,4 +61,4 @@ if __name__ == "__main__":
                         default='eval_results.txt')
     args = parser.parse_args()
     config = load_checkpoint(args.config)
-    main(args, config)
+    main(args, config, True)

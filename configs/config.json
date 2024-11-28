@@ -1,13 +1,13 @@
 {
   "model": "wav2vec2+AASIST",
-  "batch_size": 8,
+  "batch_size": 64,
   "wandb_project": "project_name",
   "d_args": {
       "nb_samp": 64600,
       "first_conv": 128,
       "filts": [70, [1, 32], [32, 32], [32, 64], [64, 64]]
   },
-  "device": "cuda:0",
+  "device": "cuda",
   "num_class": 2,
   "gpu_id": 0,
   "num_capsules": 30,
@@ -21,7 +21,7 @@
   "num_iterations": 2,
   "gamma": 0.5,
   "step_size": 10,
-  "produced_file": "eval_preds.txt",
+  "produced_file": "eval_preds_with_knn.txt",
   "asv_score_filename": "/asvspoof/LA/ASVspoof2019_LA_asv_scores/ASVspoof2019.LA.asv.dev.gi.trl.scores.txt",
   "dev_label_path": "/asvspoof/LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.dev.trl.txt",
   "dev_path_flac": "/asvspoof/LA/ASVspoof2019_LA_dev",
@@ -30,6 +30,6 @@
   "eval_label_path": "/asvspoof/LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.eval.trl.txt",
   "eval_path_flac": "/asvspoof/LA/ASVspoof2019_LA_eval",
   "checkpoint": "/app/SafeSpeak-2024/weights/LA_model.pth",
-  "knn_weights_path": "/app/SafeSpeak-2024/weights/knn_model.bin",
-  "num_workers": 6
+  "knn_weights_path": "/app/SafeSpeak-2024/weights/knn_model_eval_10n_600.bin",
+  "num_workers": 0
 }

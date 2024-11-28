@@ -117,11 +117,11 @@ def produce_evaluation_file(data_loader,
         batch_x, batch_y = batch_x.to(device), batch_y.to(device)
         with torch.no_grad():
             # first is hidden layer, second is result
-            batch_out = model(batch_x)
+            batch_out = model.predict(batch_x)
             # 1 - for bonafide speech class
-            batch_score = (batch_out[:, 1]).data.cpu().numpy().ravel()
-            loss = loss_fn(batch_out, batch_y)
-            current_loss += loss.item() / len(data_loader)
+            batch_score = (batch_out[:, 1]).ravel()
+            # loss = loss_fn(batch_out, batch_y)
+            # current_loss += loss.item() / len(data_loader)
 
         # add outputs
         fname_list.extend(utt_id)
@@ -168,9 +168,9 @@ def produce_submit_file(data_loader,
         batch_x = batch_x.to(device)
         with torch.no_grad():
             # first is hidden layer, second is result
-            batch_out = model(batch_x)
+            batch_out = model.predict(batch_x)
             # 1 - for bonafide speech class
-            batch_score = (batch_out[:, 1]).data.cpu().numpy().ravel()
+            batch_score = (batch_out[:, 1]).ravel() #.data.cpu().numpy().ravel()
 
         # add outputs
         fname_list.extend(utt_id)

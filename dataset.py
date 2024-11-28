@@ -47,39 +47,48 @@ class EvalDataset(Dataset):
         return len(self.ids)
 
 
-class IndexSampler(torch.utils.data.sampler.Sampler[int]):
+class CustomBatchSampler(torch.utils.data.sampler.Sampler):
     """
-    Класс для семплирования батчей с картинками индекса.
+    Класс для семплирования батчей с контролируемым числом классов батчей и примеров каждого класса в батче.
 
-    :param data_source: Это датасет RTSD с синтетическими примерами
-    :param examples_per_class: Число элементов каждого класса, которые должны попасть в индекс
+    :param data_source: Датасет, который будет семплироваться
+    :param n_batches: Число батчей, которое должен выдать dataloader
+    :param elems_per_class: Число сэмплов каждого класса в батче
     """
 
-    def __init__(self, data_source: ASVspoof2019, examples_per_class: int) -> None:
+    def __init__(
+        self,
+        data_source: ASVspoof2019,
+        n_batches: int,
+        elems_per_class: int,
+    ) -> None:
         self.dataset = data_source
-        self.examples_per_class = examples_per_class
+        self.n_batches = n_batches
+        self.elems_per_class = elems_per_class
+        self.classes = [0, 1]
+        self.class_to_ids = {}
+
+        for cls in self.classes:
+            self.class_to_ids[cls] = (torch.tensor(self.dataset.labels) == cls).nonzero(as_tuple=True)[0]
 
     def __iter__(self):
         """
         Функция, которая будет генерировать список индексов элементов в батче.
         """
-        batch = []
-        # Какие классы?
-        classes = list(self.dataset.classes_to_samples.keys())
-        for cls in classes:
-            elements = random.choices(self.dataset.classes_to_samples[cls], k=self.examples_per_class)
-            batch.extend(elements)
+        for _ in range(self.n_batches):
+            batch = []
+            for cls in self.classes:
+                elements = self.class_to_ids[cls][torch.randperm(len(self.class_to_ids[cls]))[:self.elems_per_class]]
+                batch.extend(elements)
             
-        return iter(batch)
+            yield batch
 
-    def __len__(self) -> int:
+    def __len__(self) -> None:
         """
-        Возвращает общее количество индексов.
+        Возвращает общее количество батчей.
         """
-        # Что возвращать?
-        n_classes = len(list(self.dataset.classes_to_samples.keys()))
-        return len(self.dataset) // (n_classes * self.examples_per_class)
-
+        return self.n_batches
+    
 
 def get_data_for_evaldataset(path):
     ids_list = os.listdir(path)
@@ -154,11 +163,12 @@ def get_dataloaders(datasets, config):
         dataloaders["dev"] = dev_loader
 
     if datasets.get("train_knn"):
-        sampler = IndexSampler(datasets["train_knn"], examples_per_class=1000)
+        sampler = CustomBatchSampler(data_source=datasets["train_knn"], elems_per_class=50, n_batches=700)
         knn_train_loader = DataLoader(
             datasets["train_knn"],
-            batch_sampler=[sampler],
-            num_workers=config["num_workers"]
+            batch_sampler=sampler,
+            shuffle=False,
+            num_workers=0
         )
         dataloaders["train_knn"] = knn_train_loader
 

@@ -16,6 +16,7 @@ def main(args, cfg):
     dataloader = get_dataloaders(eval_dataset, cfg)
 
     model = get_model(cfg["checkpoint"], cfg["device"])
+    model.load_head(cfg['knn_weights_path'])
 
     produce_submit_file(
         dataloader["eval"],
