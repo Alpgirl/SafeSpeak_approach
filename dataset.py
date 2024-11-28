@@ -49,11 +49,11 @@ class EvalDataset(Dataset):
 
 class CustomBatchSampler(torch.utils.data.sampler.Sampler):
     """
-    Класс для семплирования батчей с контролируемым числом классов батчей и примеров каждого класса в батче.
+    A class for batches to be sampled with a controlled number of batches and examples of each class per batch.
 
-    :param data_source: Датасет, который будет семплироваться
-    :param n_batches: Число батчей, которое должен выдать dataloader
-    :param elems_per_class: Число сэмплов каждого класса в батче
+    :param data_source: Dataset to be sampled
+    :param n_batches: Number of batches to be output by the dataloader
+    :param elems_per_class: Number of samples of each class in the batch
     """
 
     def __init__(
@@ -73,7 +73,7 @@ class CustomBatchSampler(torch.utils.data.sampler.Sampler):
 
     def __iter__(self):
         """
-        Функция, которая будет генерировать список индексов элементов в батче.
+        A function that generates a list of indexes of the items in the batch.
         """
         for _ in range(self.n_batches):
             batch = []
@@ -85,7 +85,7 @@ class CustomBatchSampler(torch.utils.data.sampler.Sampler):
 
     def __len__(self) -> None:
         """
-        Возвращает общее количество батчей.
+        Returns total number of batches.
         """
         return self.n_batches
     

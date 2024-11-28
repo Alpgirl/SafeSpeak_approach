@@ -24,7 +24,6 @@ class SSLModel(nn.Module):
         super(SSLModel, self).__init__()
         
         cp_path = '/app/SafeSpeak-2024/weights/xlsr2_300m.pt'   # Change the pre-trained XLSR model path. 
-        # cp_path = '/app/SafeSpeak-2024/weights/xlsr2_960m_1000k.pt'
         model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([cp_path])
         self.model = model[0]
         self.device=device
@@ -610,9 +609,9 @@ class ModelKNN(Model):
 
     def load_head(self, knn_path: str) -> None:
         """
-        Функция, загружающая веса kNN (с помощью pickle).
+        A function that loads kNN weights (using pickle).
 
-        :param knn_path: Путь, откуда надо прочитать веса kNN
+        :param knn_path: the path from where to read the weights kNN
         """
         with open(knn_path, 'rb') as file:
             self.knn = pickle.load(file)
@@ -620,9 +619,9 @@ class ModelKNN(Model):
 
     def save_head(self, knn_path: str) -> None:
         """
-        Функция, сохраняющая веса kNN (с помощью pickle).
+        A function that stores the weights of kNN (using pickle).
 
-        :param knn_path: Путь, куда надо сохранить веса kNN
+        :param knn_path: the path where the kNN weights should be saved to
         """
         with open(knn_path, 'wb') as file:
             pickle.dump(self.knn, file)
@@ -630,13 +629,12 @@ class ModelKNN(Model):
 
     def train_head(self, indexloader: torch.utils.data.DataLoader) -> None:
         """
-        Функция, обучающая голову kNN.
+        A function that trains the kNN head.
 
-        :param indexloader: Загрузчик данных для обучения kNN
+        :param indexloader: Data loader for kNN training
         """
         features, labels = [], []
 
-        # self = self.to("cpu")
         with torch.no_grad():
             i = 0
             for audios, targets, _ in indexloader:
@@ -655,9 +653,6 @@ class ModelKNN(Model):
 
 
     def predict(self, audio: torch.Tensor) -> np.ndarray:
-        """
-        Функция для предсказания классов-ответов. Возвращает np-массив с индексами классов.
-        """
         self = self.to(self.device)
         features, model_pred = self(audio)
         features = features.detach().cpu().numpy()

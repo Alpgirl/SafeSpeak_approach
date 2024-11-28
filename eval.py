@@ -56,9 +56,12 @@ if __name__ == "__main__":
     parser.add_argument('--config',
                         type=str,
                         default='configs/config.json')
+    parser.add_argument('--train_knn',
+                    type=bool,
+                    default=False)
     parser.add_argument('--output_file',
                         type=str,
                         default='eval_results.txt')
     args = parser.parse_args()
     config = load_checkpoint(args.config)
-    main(args, config, True)
+    main(args, config, args.train_knn)
